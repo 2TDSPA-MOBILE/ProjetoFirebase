@@ -1,11 +1,16 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { createUserWithEmailAndPassword } from 'firebase/auth';
+import {auth} from "../services/firebaseConfig"
+import { useRouter } from 'expo-router';
 
 export default function CadastroScreen() {
   // Estados para armazenar os valores digitados
   const [nome, setNome] = useState('');
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
+
+  const router = useRouter()//Hook de navegação
 
   // Função para simular o envio do formulário
   const handleCadastro = () => {
@@ -14,7 +19,17 @@ export default function CadastroScreen() {
       return;
     }
     Alert.alert('Sucesso', `Usuário ${nome} cadastrado com sucesso!`);
-    // Aqui você poderia fazer um fetch/axios para enviar ao backend
+    createUserWithEmailAndPassword(auth,email,senha)
+      .then((userCredential)=>{
+        const user = userCredential.user;
+        console.log(user)
+        router.replace("/Home")
+      })
+      .catch((error) => {
+        const errorCode = error.code;
+        const errorMessage = error.message;
+        console.log(errorCode+" "+errorMessage)
+    })
   };
 
   return (
