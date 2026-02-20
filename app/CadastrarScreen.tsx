@@ -3,6 +3,7 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'reac
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import {auth} from "../services/firebaseConfig"
 import { useRouter } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function CadastroScreen() {
   // Estados para armazenar os valores digitados
@@ -18,11 +19,12 @@ export default function CadastroScreen() {
       Alert.alert('Atenção', 'Preencha todos os campos!');
       return;
     }
-    Alert.alert('Sucesso', `Usuário ${nome} cadastrado com sucesso!`);
-    createUserWithEmailAndPassword(auth,email,senha)
-      .then((userCredential)=>{
+      createUserWithEmailAndPassword(auth,email,senha)
+      .then(async(userCredential)=>{
         const user = userCredential.user;
         console.log(user)
+        //Salvando o usuário no AsyncStorage
+        await AsyncStorage.setItem("@user",JSON.stringify(user))
         router.replace("/Home")
       })
       .catch((error) => {
