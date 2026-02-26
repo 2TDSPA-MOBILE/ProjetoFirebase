@@ -2,7 +2,7 @@ import { Link } from 'expo-router';
 import React, { useState,useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { auth } from "../services/firebaseConfig"
-import { signInWithEmailAndPassword } from 'firebase/auth';
+import { signInWithEmailAndPassword,sendPasswordResetEmail } from 'firebase/auth';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -54,6 +54,21 @@ export default function LoginScreen() {
       });
   };
 
+  const esqueceuSenha = ()=>{
+    if(!email){
+      Alert.alert("Error","Digite seu e-mail para recuperar a senha.")
+    }
+    //Função para redefinir a senha do usuário
+    sendPasswordResetEmail(auth,email)
+      .then(()=>{
+        Alert.alert("Sucesso","E-mail de redefinição enviado!")
+      })
+      .catch((error)=>{
+        console.log("Error ao enviado e-mail de redefinição", error.message)
+        Alert.alert("Error","E-mail de redefinição NÃO enviado.")
+      })
+  }
+
   return (
     <View style={styles.container}>
       <Text style={styles.titulo}>Realizar login</Text>
@@ -86,6 +101,10 @@ export default function LoginScreen() {
       </TouchableOpacity>
 
       <Link href="CadastrarScreen" style={{ marginTop: 20, color: 'white', marginLeft: 150 }}>Cadastre-se</Link>
+
+      <TouchableOpacity onPress={esqueceuSenha}>
+        <Text style={{ marginTop: 20, color: 'white', marginLeft: 130}}>Esqueceu a senha</Text>
+      </TouchableOpacity>
     </View>
   );
 }
