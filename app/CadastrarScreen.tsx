@@ -4,6 +4,7 @@ import { createUserWithEmailAndPassword } from 'firebase/auth';
 import {auth} from "../services/firebaseConfig"
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { criarPerfilUsuario } from '../services/userDataService';
 
 export default function CadastroScreen() {
   // Estados para armazenar os valores digitados
@@ -22,7 +23,14 @@ export default function CadastroScreen() {
       createUserWithEmailAndPassword(auth,email,senha)
       .then(async(userCredential)=>{
         const user = userCredential.user;
-        console.log(user)
+        
+        //Cria/atualiza o perfil inicial em usuarios/{uid}
+        await criarPerfilUsuario({
+          uid:user.uid,
+          email:user.email,
+          nome
+        })
+
         //Salvando o usuário no AsyncStorage
         await AsyncStorage.setItem("@user",JSON.stringify(user))
         router.replace("/Home")

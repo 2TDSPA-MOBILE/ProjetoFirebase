@@ -5,6 +5,8 @@ import { auth } from "../services/firebaseConfig"
 import { signInWithEmailAndPassword,sendPasswordResetEmail } from 'firebase/auth';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { registrarUltimoLogin } from '../services/userDataService';
+
 
 export default function LoginScreen() {
   // Estados para armazenar os valores digitados
@@ -39,6 +41,9 @@ export default function LoginScreen() {
       .then(async(userCredential) => {
         // Signed in 
         const user = userCredential.user;
+        //Atualiza o campo de último login no doc do usuario/{uid}
+        await registrarUltimoLogin(user.uid,user.email)
+
         //Salvando o usuário no AsyncStorage
         await AsyncStorage.setItem("@user",JSON.stringify(user))
         //Redericionar para a tela home
