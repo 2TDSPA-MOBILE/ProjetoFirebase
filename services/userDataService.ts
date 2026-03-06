@@ -37,13 +37,14 @@ export async function registrarUltimoLogin(uid:string,email:string|null) {
         email,
         ultimoLoginEm:serverTimestamp(),
         atualizadoEm:serverTimestamp()
-    }
-    ),{merge:true}
+    },
+    {merge:true}
+    )
 }
 
 //Função para salvar o produto na subcoleção do usuário: usuarios/{uid}/produtos
 export async function salvarProdutoUsuario(uid:string,nomeProduto:string) {
-    addDoc(collection(db,"usuarios",uid,"produtos"),{
+    await addDoc(collection(db,"usuarios",uid,"produtos"),{
         nomeProduto,
         criadoEm:serverTimestamp()
     })

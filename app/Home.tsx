@@ -1,8 +1,8 @@
 import { Text, StyleSheet, View, Button, Alert, TextInput, KeyboardAvoidingView, Platform, FlatList, Modal, TouchableOpacity } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
-import { auth, addDoc, db } from "../services/firebaseConfig"
-import { deleteUser } from "firebase/auth";
+import { auth, db } from "../services/firebaseConfig"
+import { deleteUser, onAuthStateChanged } from "firebase/auth";
 import ItemLoja from "./components/ItemLoja";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useState, useEffect } from "react";
@@ -34,42 +34,49 @@ export default function Home() {
     Sempre que algo muda no Firestore, a lista é atualizada automaticamente
     na tela*/
     useEffect(() => {
+        let unsubscribeProdutos: (() => void) | undefined
 
-
-        const user = auth.currentUser
-        try {
-            if (user) {
-                //Se não houver nenhum usuário logado, estados produtos fica vazio
-                // if(!user){
-                //     setProdutos([])
-                //     return
-                // }
-
-                //Referência da subcoleção: usuarios/{uid}/produtos
-                const produtosRef = collection(db, "usuarios", user.uid, "produtos")
-                if (produtosRef) {
-                    //Ordena os itens por data de criação(mais recente ficará no topo)
-                    const produtosQuery = query(produtosRef, orderBy("criadoEm", "desc"))
-
-                    //OnSnapshot mantém a sincronização em tempo real entre o Firestore e estado local
-                    const unsubscribe = onSnapshot(produtosQuery, (snapshot) => {
-                        const dados = snapshot.docs.map((item) => ({
-                            id: item.id,
-                            nomeProduto: (item.data().nomeProduto as string ?? "")
-                        }))
-                        //Pegado os produtos da subcoleção do usuários e armazena no estado
-                        setProdutos(dados)
-                    })
-                }
-
-
-                // //Cleanup: remover o listener ao sair da tela para evitar vazamento de memória
-                // return unsubscribe
+        const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
+            //Garante que o listener anterior seja removido ao trocar de usuário
+            if (unsubscribeProdutos) {
+                unsubscribeProdutos()
+                unsubscribeProdutos = undefined
             }
-        } catch (error) {
-            console.log("Erro ao buscar produtos.")
-        }
 
+            if (!user) {
+                setProdutos([])
+                return
+            }
+
+            //Referência da subcoleção: usuarios/{uid}/produtos
+            const produtosRef = collection(db, "usuarios", user.uid, "produtos")
+            //Ordena os itens por data de criação(mais recente ficará no topo)
+            const produtosQuery = query(produtosRef, orderBy("criadoEm", "desc"))
+
+            //OnSnapshot mantém a sincronização em tempo real entre o Firestore e estado local
+            unsubscribeProdutos = onSnapshot(
+                produtosQuery,
+                (snapshot) => {
+                    const dados = snapshot.docs.map((item) => ({
+                        id: item.id,
+                        nomeProduto: (item.data().nomeProduto as string ?? "")
+                    }))
+                    //Pegado os produtos da subcoleção do usuários e armazena no estado
+                    setProdutos(dados)
+                },
+                (error) => {
+                    console.log("Erro ao buscar produtos:", error)
+                }
+            )
+        })
+
+        //Cleanup: remover listeners ao sair da tela
+        return () => {
+            unsubscribeAuth()
+            if (unsubscribeProdutos) {
+                unsubscribeProdutos()
+            }
+        }
     }, [])
 
     const realizarLogoff = async () => {
@@ -174,6 +181,11 @@ export default function Home() {
     const atualizarNomeProduto = async () => {
         const user = auth.currentUser
 
+        if (!user) {
+            Alert.alert("Erro", "Nenhum usuário autenticado.")
+            return
+        }
+
         //validação para o usuário não salvar o item com nome em vazio
         if (!novoNomeProduto.trim()) {
             Alert.alert("Atenção", "Digite um novo válido para o produto.")
@@ -182,8 +194,8 @@ export default function Home() {
 
         try {
             //Realizar um referencia do produto(doc) especifico
-            const produtoRef = doc(db, "usuarios", user?.uid, "produtos", produtoSelecionadoId)
-            //Atualizar apensa o produto selecionado
+            const produtoRef = doc(db, "usuarios", user.uid, "produtos", produtoSelecionadoId)
+            //Atualizar apenas o produto selecionado
             await updateDoc(produtoRef, { nomeProduto: novoNomeProduto.trim() })
             //Fecha o modal
             fecharModalEdicao()
