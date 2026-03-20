@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
-import { auth } from '../services/firebaseConfig'
+import { auth } from '../src/services/firebaseConfig'
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { updatePassword, reauthenticateWithCredential, EmailAuthProvider } from 'firebase/auth';
@@ -35,9 +35,13 @@ export default function CadastroScreen() {
         Alert.alert("Erro", "Nenhum usuário está logado.")
         return
       }
+      if (!user.email) {
+        Alert.alert("Erro", "Não foi possível validar o e-mail do usuário.")
+        return
+      }
 
       //Cria as credenciais com e-mail e senha atual para reautenticar
-      const credencial = EmailAuthProvider.credential(user?.email, senhaAtual);
+      const credencial = EmailAuthProvider.credential(user.email, senhaAtual);
       await reauthenticateWithCredential(user, credencial)
 
       //Após reautenticar, altera a senha

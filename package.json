@@ -16,8 +16,11 @@
     "expo-router": "~5.1.4",
     "expo-status-bar": "~2.2.3",
     "firebase": "^12.9.0",
+    "i18next": "^25.8.20",
     "react": "19.0.0",
+    "react-i18next": "^16.5.8",
     "react-native": "0.79.5",
+    "react-native-localize": "^3.7.0",
     "react-native-safe-area-context": "5.4.0",
     "react-native-screens": "~4.11.1"
   },

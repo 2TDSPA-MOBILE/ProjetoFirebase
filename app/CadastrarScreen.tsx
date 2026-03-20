@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
-import {auth} from "../services/firebaseConfig"
+import {auth} from "../src/services/firebaseConfig"
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { criarPerfilUsuario } from '../services/userDataService';
+import { criarPerfilUsuario } from '../src/services/userDataService';
 
 export default function CadastroScreen() {
   // Estados para armazenar os valores digitados

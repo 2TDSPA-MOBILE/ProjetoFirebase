@@ -1,12 +1,12 @@
 import { Text, StyleSheet, View, Button, Alert, TextInput, KeyboardAvoidingView, Platform, FlatList, Modal, TouchableOpacity } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
-import { auth, db } from "../services/firebaseConfig"
+import { auth, db } from "../src/services/firebaseConfig"
 import { deleteUser, onAuthStateChanged } from "firebase/auth";
 import ItemLoja from "./components/ItemLoja";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useState, useEffect } from "react";
-import { salvarProdutoUsuario } from "../services/userDataService";
+import { salvarProdutoUsuario } from "../src/services/userDataService";
 import { collection, onSnapshot, orderBy, query, doc, deleteDoc, updateDoc } from "firebase/firestore"
 
 type Produto = {
