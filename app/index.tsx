@@ -128,9 +128,8 @@ export default function LoginScreen() {
       <View style={{ flexDirection: "row", justifyContent: "space-evenly", marginTop: 30 }}>
         <TouchableOpacity
           style={[styles.botao, { backgroundColor: "blue", width: 100 }]}
-          onPress={() => mudarIdioma("en")}
-        > <View style={{ flexDirection: 'row' }}>
-
+          onPress={() => mudarIdioma("en")}>
+          <View style={{ flexDirection: 'row' }}>
             <Image
               source={require("../assets/eua.png")}
               style={{ width: 50, height: 50 }}
@@ -141,8 +140,7 @@ export default function LoginScreen() {
 
         <TouchableOpacity
           style={[styles.botao, { width: 100 }]}
-          onPress={() => mudarIdioma("pt")}
-        >
+          onPress={() => mudarIdioma("pt")}>
           <Image
             source={require("../assets/brasil.png")}
             style={{ width: 50, height: 50 }}
