@@ -8,6 +8,19 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useState, useEffect } from "react";
 import { salvarProdutoUsuario } from "../src/services/userDataService";
 import { collection, onSnapshot, orderBy, query, doc, deleteDoc, updateDoc } from "firebase/firestore"
+import * as Notifications from "expo-notifications"
+
+//Definir como o app vai reagir quando receber uma noticação
+Notifications.setNotificationHandler({
+    //Função assíncrona chamada automaticamente ao receber uma notificação
+    handleNotification:async()=>({
+        //Define se a notificação vai aparecer como alerta visual(poup/banner)
+        //quando true ele exibe a notificação mesmo com o app aberto
+        shouldShowAlert:true,
+        shouldPlaySound:true,//toca som de notificação
+        shouldSetBadge:false
+    })
+})
 
 type Produto = {
     id: string,
@@ -27,6 +40,8 @@ export default function Home() {
     const [produtoSelecionadoId, setProdutoSelecionadoId] = useState("")
     //Estado que irá armazenar o campo do modal
     const [novoNomeProduto, setNovoNomeProduto] = useState("")
+    //Estado para armazenar o token de notificação
+    const[expoPushToken, setExpoPushToken]=useState<string|null>(null)
 
     const router = useRouter()//Hook de navegação
 
@@ -78,6 +93,35 @@ export default function Home() {
             }
         }
     }, [])
+
+    useEffect(()=>{
+        (async()=>{
+            const{status:existingStatus}= await Notifications.getPermissionsAsync()
+            let finalStatus = existingStatus
+
+            if(existingStatus!=="granted"){
+                const{status} = await Notifications.requestPermissionsAsync()
+                finalStatus=status
+            }
+
+            if(finalStatus!=="granted"){
+                alert("Permissão de notificação não foi concedida.")
+                return
+            }
+        })()
+    },[])
+
+    useEffect(()=>{
+        (async()=>{
+            try{
+                const token = await registerPushNotificationsAsync()
+                setExpoPushToken(token)
+                console.log(token)
+            }catch(error){  
+                console.log("Error ao gerar token de notificação:",error)
+            }
+        })()
+    },[])
 
     const realizarLogoff = async () => {
         await AsyncStorage.removeItem("@user")//Limpa o usuário do Async
@@ -207,7 +251,30 @@ export default function Home() {
 
     }
 
+    //Disparando notificação local
+    const dispararNotificacao = async ()=>{
+        await Notifications.scheduleNotificationAsync({
+            content:{
+                title:"Notificação Teste",
+                body:"Aula de notificações push"
+            },
+            trigger:null //Ela vai disparada sem agendamento(na hora)
+        })
+    }
 
+    //Criando função para pegar o token de notificação do usuário
+    const registerPushNotificationsAsync = async():Promise<string|null>=>{
+        try{
+            const tokenData = await Notifications.getExpoPushTokenAsync()
+            const token = tokenData.data
+            console.log("Token de notificação gerado com sucesso:",token)
+            return token
+
+        }catch(error){
+            console.log("Error ao gerar token de notificação", error)
+            return null
+        }
+    }
 
     return (
         <SafeAreaView style={styles.main}>
@@ -221,6 +288,7 @@ export default function Home() {
                 <Button title="Realizar logoff" onPress={realizarLogoff} />
                 <Button title="Excluir Conta" color="red" onPress={excluirConta} />
                 <Button title="Alterar Senha" onPress={() => router.push("/AlterarSenhaScreen")} />
+                <Button title="Disparar Notificação Local" color="purple"  onPress={dispararNotificacao} />
 
                 <FlatList
                     data={produtos}
